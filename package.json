@@ -1,11 +1,11 @@
 {
   "name": "dreaming-brain",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "A small, reviewable memory loop for a personal AI agent",
   "type": "module",
   "engines": { "node": ">=22" },
   "bin": { "dreaming-brain": "bin/brain.js" },
-  "scripts": { "test": "node --test", "demo": "node examples/demo.js" },
+  "scripts": { "test": "node --test", "demo": "node examples/demo.js", "test:brainpack": "node scripts/check-brainpack.js" },
   "license": "MIT"
 }

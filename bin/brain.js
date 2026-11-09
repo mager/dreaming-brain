@@ -19,6 +19,7 @@ node bin/brain.js [--brain DIR] COMMAND
   accept ID                    Apply a reviewed proposal.
   reject ID                    Keep its sessions available for a new review.
   context [QUERY]              Print profile and matching accepted notes.
+  export                       Print profile and ALL accepted notes as Markdown.
   status                       Show counts and proposal IDs.
   undo                         Restore notes/checkpoint before the last acceptance.
 
@@ -49,7 +50,7 @@ try {
   const [command, ...args] = positionals;
   if (values.help || !command) { output(help); }
   else {
-    const counts = { init: 0, capture: 1, prompt: 0, dream: 0, review: 1, accept: 1, reject: 1, context: null, status: 0, undo: 0 };
+    const counts = { init: 0, capture: 1, prompt: 0, dream: 0, review: 1, accept: 1, reject: 1, context: null, export: 0, status: 0, undo: 0 };
     if (!Object.hasOwn(counts, command)) throw new Error(`Unknown command: ${command}. Use --help.`);
     if (counts[command] !== null && args.length !== counts[command]) throw new Error(`${command} expects ${counts[command]} argument(s). Use --help.`);
     if (command !== 'dream' && (values.live || values.reply || values.request)) throw new Error('Dream options require the dream command.');
@@ -85,6 +86,7 @@ try {
       case 'accept': brain.accept(args[0]); output('Accepted. Run context to read the saved notes.'); break;
       case 'reject': brain.reject(args[0]); output('Rejected. Captured sessions remain available.'); break;
       case 'context': output(brain.context(args.join(' '))); break;
+      case 'export': output(brain.exportMemory()); break;
       case 'status': output({ ...brain.status(), proposals: Object.values(brain.load().proposals).map(p => ({ id: p.id, status: p.status })) }); break;
       case 'undo': brain.undo(); output('Restored previous notes and checkpoint; captured sessions are preserved.'); break;
     }

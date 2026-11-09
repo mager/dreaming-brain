@@ -92,6 +92,41 @@ Attach or read `brain/context.md` in your next agent session, together with the 
 
 Context always includes the user-authored profile. With a query, it returns matching accepted notes using simple case-insensitive word matching. With no query, it returns accepted notes in storage order. It includes at most eight notes and approximately 12,000 characters, and reports omitted matches. Narrow the query if needed. This starter has no vector database or semantic search.
 
+## Optional: move accepted memory with Brainpack
+
+The `export` command prints the profile and **all accepted notes** as Markdown. Unlike `context`, it has no eight-note or 12,000-character recall limit. It includes scope, recheck conditions, acceptance dates, and cited excerpts. It does not include complete session logs, pending proposals, unresolved questions, or undo history.
+
+You can use that file with any assistant that reads Markdown. To package it with [Brainpack](https://github.com/mager/brainpack), create a separate directory outside this source repository:
+
+```sh
+# Run from the dreaming-brain repository after accepting useful notes.
+brain_pack_dir="$HOME/my-agent-pack"
+mkdir -p "$brain_pack_dir"
+node bin/brain.js export > "$brain_pack_dir/MEMORY.md.next" &&
+  mv "$brain_pack_dir/MEMORY.md.next" "$brain_pack_dir/MEMORY.md"
+
+cd "$brain_pack_dir"
+npx --yes --package=@mager/brainpack@0.3.0 brainpack init --name my-agent --platform generic
+git add MEMORY.md brainpack.json .gitignore
+git commit -m "Save accepted agent memory"
+npx --yes --package=@mager/brainpack@0.3.0 brainpack snapshot accepted-memory
+npx --yes --package=@mager/brainpack@0.3.0 brainpack export "$HOME/my-agent-pack.tar.gz"
+```
+
+Git needs your usual commit identity. Brainpack's `snapshot` tags the current commit, so commit the memory file before taking a snapshot. Version `0.3.0` is the published package used in the compatibility check. Brainpack is optional and is not added to this project's dependencies.
+
+To refresh the pack, return to the dreaming-brain repository, export again, review the Git diff in the pack directory, and commit the change. Use a new snapshot name. To restore the archive on another machine:
+
+```sh
+mkdir -p "$HOME/restored-agent-pack"
+cd "$HOME/restored-agent-pack"
+npx --yes --package=@mager/brainpack@0.3.0 brainpack import "$HOME/my-agent-pack.tar.gz"
+```
+
+Give the restored `MEMORY.md` to your assistant as context. This is a one-way export for reading; it does not rebuild a dreaming-brain database. Back up the original private `brain/` directory if you need its sessions, checkpoints, and undo history.
+
+The profile, accepted notes, and quoted excerpts can still contain personal information. Review the file before sharing it, and use a private destination for personal memory. Export is not a redaction tool. The commands above do not configure a remote or upload the pack. A full export can exceed an assistant's context limit; use `context QUERY` when you need a smaller selection.
+
 ## What a note contains
 
 Each proposed note has:
@@ -147,12 +182,15 @@ node bin/brain.js --brain "$HOME/my-agent-memory" init
 
 ```sh
 npm test
+# Optional: downloads the pinned Brainpack CLI and tests a local archive round trip.
+npm run test:brainpack
 ```
 
 - `lib/brain.js`: storage, source validation, review/accept/undo, context.
 - `lib/dream.js`: prompt, JSON schema, bounded Claude API request.
 - `bin/brain.js`: command-line interface.
 - `examples/`: synthetic session and offline lifecycle demo.
+- `scripts/check-brainpack.js`: correction, export, Git snapshot, archive, and import check using synthetic data.
 
 The tests exercise real temporary files and CLI processes. API tests replace the network boundary to check successful responses, HTTP errors, malformed output, and truncation without a paid call.
 
