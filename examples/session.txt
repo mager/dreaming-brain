@@ -1,0 +1,9 @@
+Synthetic example. No real deployment or personal data.
+
+User: Create a preview deployment for the docs project.
+Assistant: I tried the default deployment target.
+Tool result: Missing target configuration. Exit code 1.
+User: Preview deployments must use the staging target.
+Assistant: I ran deploy --target staging.
+Tool result: The staging deployment passed. Exit code 0.
+User: That is the right target for docs previews. Production releases have a separate process.
